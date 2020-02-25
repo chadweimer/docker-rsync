@@ -10,7 +10,7 @@ script:
   - docker build -t cwmr/rsync:amd64 .
   # build armhf image
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
-  - docker build --build-arg IMAGE=multiarch/alpine:armhf-v3.11 -t cwmr/rsync:arm .
+  - docker build --build-arg IMAGE=multiarch/alpine:armhf-v3.10 -t cwmr/rsync:arm .
   # push image
   - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
   - >
