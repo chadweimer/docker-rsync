@@ -18,10 +18,16 @@ script:
       docker push cwmr/rsync:amd64
       docker push cwmr/rsync:arm
       docker run --rm mplatform/manifest-tool --username $DOCKER_USER --password $DOCKER_PASS push from-args --platforms linux/amd64,linux/arm --template cwmr/rsync:ARCH --target cwmr/rsync:latest
-      TAG=$(grep "ENV AWS_CLI_VERSION" Dockerfile | awk 'NF>1{print $NF}')
-      docker tag cwmr/rsync:amd64 cwmr/rsync:$TAG-amd64
-      docker tag cwmr/rsync:arm cwmr/rsync:$TAG-arm
-      docker push cwmr/rsync:$TAG-amd64
-      docker push cwmr/rsync:$TAG-arm
-      docker run --rm mplatform/manifest-tool --username $DOCKER_USER --password $DOCKER_PASS push from-args --platforms linux/amd64,linux/arm --template cwmr/rsync:$TAG-ARCH --target cwmr/rsync:$TAG
+    elif [ -z "$TRAVIS_TAG" ]; then
+      docker tag cwmr/rsync:amd64 cwmr/rsync:dev-amd64
+      docker tag cwmr/rsync:arm cwmr/rsync:dev-arm
+      docker push cwmr/rsync:dev-amd64
+      docker push cwmr/rsync:dev-arm
+      docker run --rm mplatform/manifest-tool --username $DOCKER_USER --password $DOCKER_PASS push from-args --platforms linux/amd64,linux/arm --template cwmr/rsync:dev-ARCH --target cwmr/rsync:dev
+    else
+      docker tag cwmr/rsync:amd64 cwmr/rsync:$TRAVIS_TAG-amd64
+      docker tag cwmr/rsync:arm cwmr/rsync:$TRAVIS_TAG-arm
+      docker push cwmr/rsync:$TRAVIS_TAG-amd64
+      docker push cwmr/rsync:$TRAVIS_TAG-arm
+      docker run --rm mplatform/manifest-tool --username $DOCKER_USER --password $DOCKER_PASS push from-args --platforms linux/amd64,linux/arm --template cwmr/rsync:$TRAVIS_TAG-ARCH --target cwmr/rsync:$TRAVIS_TAG
     fi
