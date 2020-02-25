@@ -1,0 +1,27 @@
+sudo: required
+
+services:
+  - docker
+
+language: bash
+
+script:
+  # build amd64 image
+  - docker build -t cwmr/rsync:amd64 .
+  # build armhf image
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+  - docker build --build-arg IMAGE=multiarch/alpine:armhf-v3.11 -t cwmr/rsync:arm .
+  # push image
+  - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+  - >
+    if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      docker push cwmr/rsync:amd64
+      docker push cwmr/rsync:arm
+      docker run --rm mplatform/manifest-tool --username $DOCKER_USER --password $DOCKER_PASS push from-args --platforms linux/amd64,linux/arm --template cwmr/rsync:ARCH --target cwmr/rsync:latest
+      TAG=$(grep "ENV AWS_CLI_VERSION" Dockerfile | awk 'NF>1{print $NF}')
+      docker tag cwmr/rsync:amd64 cwmr/rsync:$TAG-amd64
+      docker tag cwmr/rsync:arm cwmr/rsync:$TAG-arm
+      docker push cwmr/rsync:$TAG-amd64
+      docker push cwmr/rsync:$TAG-arm
+      docker run --rm mplatform/manifest-tool --username $DOCKER_USER --password $DOCKER_PASS push from-args --platforms linux/amd64,linux/arm --template cwmr/rsync:$TAG-ARCH --target cwmr/rsync:$TAG
+    fi
